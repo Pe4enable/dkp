@@ -1,0 +1,384 @@
+<!--
+--------
+WARNING:
+--------
+
+THIS CODE IS ONLY MADE AVAILABLE FOR DEMONSTRATION PURPOSES AND IS NOT SECURE! DO NOT USE IN PRODUCTION!
+
+FOR SECURITY REASONS, USING A JAVASCRIPT WEB APP HOSTED VIA THE CORDA NODE IS NOT THE RECOMMENDED WAY TO INTERFACE
+WITH CORDA NODES! HOWEVER, FOR THIS PRE-ALPHA RELEASE IT'S A USEFUL WAY TO EXPERIMENT WITH THE PLATFORM AS IT ALLOWS
+YOU TO QUICKLY BUILD A UI FOR DEMONSTRATION PURPOSES.
+
+GOING FORWARD WE RECOMMEND IMPLEMENTING A STANDALONE WEB SERVER THAT AUTHORISES VIA THE NODE'S RPC INTERFACE. IN THE
+COMING WEEKS WE'LL WRITE A TUTORIAL ON HOW BEST TO DO THIS.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Example CorDapp</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0-rc.1/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.2.0/ui-bootstrap-tpls.min.js"></script>
+    <script src="js/angular-module.js"></script>
+    <script src="js/Helpers/apiHelper.js"></script>
+    <script src="js/createBuild.js"></script>
+
+    <script src="js/createMortage.js"></script>
+    <script src="js/createDeal.js"></script>
+</head>
+<body ng-app="demoAppModule" ng-controller="DemoAppController as demoApp">
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">{{demoApp.thisNode}}</a>
+        </div>
+        <button ng-click="demoApp.openModal()" type="button" class="btn btn-primary navbar-btn" style="display:none;">Create IOU</button>
+    </div>
+
+    <ul  class="nav nav-tabs" id="nav-tab">
+        <li class="active"><a id="nav-build-tab" data-toggle="tab" href="#nav-build" aria-expanded="true">Home</a></li>
+        <li><a id="nav-deal-tab" data-toggle="tab" href="#nav-deal">Profile</a></li>
+
+        <li><a id="nav-mortage-tab" data-toggle="tab" href="#nav-mortage" >Profile</a></li>
+    </ul>
+</nav>
+
+<div class="tab-content" id="nav-tabContent">
+    <div class="tab-pane fade in active" id="nav-build" >
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Создать объект недвижимости</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div  class="row">
+                            <label for="tbAddress" class="col-sm-2 col-form-label">Address</label>
+                            <div class="col-md-2">
+                                <!-- <input type="text" ng-model="demoApp.address" class="form-control" id="address"> -->
+                                 <input  class="form-control" id="address" ng-model="demoApp.build.address" data-bind="value: Build.Address" placeholder="Address"/> 
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbAddress" class="col-sm-2 col-form-label">Price</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control" id="price" ng-model="demoApp.build.price" data-bind="value: Build.Price" placeholder="Price"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbAddress" class="col-sm-2 col-form-label">Description</label>
+
+                            <div class="col-md-2">
+                                <textarea   class="form-control" id="description" ng-model="demoApp.build.description" data-bind="value: Build.Description" placeholder="Description" ></textarea >
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbAddress" class="col-sm-2 col-form-label">Area</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control" id="tbArea" data-bind="value: Build.Area"  ng-model="demoApp.build.area" placeholder="Area"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbAddress" class="col-sm-2 col-form-label">Comment</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control" id="tbComment" data-bind="value: Build.Comment"  ng-model="demoApp.build.comment" placeholder="Comment"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" type="button" ng-click="demoApp.createBuild()">Create</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div ng-show="!demoApp.builds.length" class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">There are no recorded builds</h3>
+                    </div>
+                    <div class="panel-body">Use form above to create a build to a peer.</div>
+                </div>
+                <div ng-show="demoApp.ious.length" class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Recorded Builds:</h3>
+                    </div>
+                </div>
+                <div ng-repeat="build in demoApp.builds" class="panel panel-default">
+                    <div class="row">
+                        <div class="panel-body col-md-4">
+                            <ul>
+                                <li>Id: {{build.buildUID.id}}</li>
+                                <li>Address: {{build.buildAddress}}</li>
+                                <li>Description: {{build.description}}</li>
+                                <li>Price: {{build.price}}</li>
+                                <li>Area: {{build.area}}</li>
+                                <li>Comment: {{build.comment}}</li>
+                                <li>Status: {{build.status}}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-2"  ng-show="build.status == 'created'">
+                                <button class="btn btn-primary" type="button" ng-click="demoApp.bookBuild(build.buildUID)">Book</button>
+                        </div>
+                        <div class="col-md-2"  ng-show="build.status == 'booked'">
+                            <button class="btn btn-primary" type="button" ng-click="demoApp.createDeal(build.buildUID)">Buy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="nav-deal">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Create Deal</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <label for="tbRealtyUID" class="col-sm-2 col-form-label">realtyUID</label>
+                            <div class="col-md-2">
+                                <input class="form-control" type="text" id="tbRealtyUID" placeholder="realty.UID" data-bind="value: realty.UID"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbBankUID" class="col-sm-2 col-form-label">bankUID</label>
+                            <div class="col-md-2">
+                                <input class="form-control" id="tbBankUID" placeholder="bank.UID" data-bind="value: bank.UID"/>
+                            </div>
+                        </div>
+                        </br>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Developer</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <label for="tbRealtyUID" class="col-sm-2 col-form-label">developerUID</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperUID" data-bind="value: developer.UID" placeholder="developerUID"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbRealtyUID" class="col-sm-2 col-form-label">developerINN</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperINN" data-bind="value: developer.INN" placeholder="developerINN"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbRealtyUID" class="col-sm-2 col-form-label">developerKPP</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperKPP" data-bind="value: developer.KPP" placeholder="developerKPP"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbRealtyUID" class="col-sm-2 col-form-label">developerOGRN</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperOGRN" data-bind="value: developer.OGRN" placeholder="developerOGRN"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbDeveloperName" class="col-sm-2 col-form-label">developerName</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperName" data-bind="value: developer.Name" placeholder="developerName"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbDeveloperAdress" class="col-sm-2 col-form-label">developerAdress</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbDeveloperAdress" data-bind="value: developer.Adress" placeholder="developerAdress"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Buyer</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <label for="tbBuyerFIO" class="col-sm-2 col-form-label">buyerFIO</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbBuyerFIO" data-bind="value: buyer.FIO" placeholder="buyerFIO"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbBuyerBirthday" class="col-sm-2 col-form-label">buyerBirthday</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbBuyerBirthday" data-bind="value: buyer.Birthday" placeholder="buyerBirthday"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbBuyerPassport" class="col-sm-2 col-form-label">buyerPassport</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbBuyerPassport" data-bind="value: buyer.Passport" placeholder="buyerPassport"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbBuyerAddress" class="col-sm-2 col-form-label">buyerAddress</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbBuyerAddress" data-bind="value: buyer.Address" placeholder="buyerAddress"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="tbBuyerSNILS" class="col-sm-2 col-form-label">buyerSNILS</label>
+                                    <div class="col-md-2">
+                                        <input class="form-control" id="tbBuyerSNILS" data-bind="value: buyer.SNILS" placeholder="buyerSNILS"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" type="button" onclick="CreateDeal()">Create</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="nav-mortage">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Создать кредитный договор</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div  class="row">
+                            <label for="tbMortgagePDFDocument" class="col-sm-2 col-form-label">mortgagePDFDocument</label>
+                            <div class="col-md-2">
+                                <input  class="form-control-file" id="tbMortgagePDFDocument" data-bind="event:{change: $root.PDFDocument.fileSelect}" placeholder="mortgagePDFDocument" type="file"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbMortgagePDFSIG" class="col-sm-2 col-form-label">mortgagePDFSIG</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control-file" id="tbMortgagePDFSIG" data-bind="event:{change: $root.PDFSIG.fileSelect}" placeholder="mortgagePDFSIG" type="file"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbMortgageXMLDocument" class="col-sm-2 col-form-label">mortgageXMLDocument</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control-file" id="tbMortgageXMLDocument" data-bind="event:{change: $root.XMLDocument.fileSelect}" placeholder="mortgageXMLDocument" type="file"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label for="tbMortgageXMLSIG" class="col-sm-2 col-form-label">mortgageXMLSIG</label>
+
+                            <div class="col-md-2">
+                                <input  class="form-control-file" id="tbMortgageXMLSIG" data-bind="event:{change: $root.XMLSIG.fileSelect}" placeholder="mortgageXMLSIG" type="file"/>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" type="button" onclick="CreateMortage()">Create</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/ng-template" id="demoAppModal.html">
+    <div class="modal-header">
+        <h4 class="modal-title">Add new IOU</h4>
+    </div>
+    <form>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="counterparty" class="control-label">Counter-party:</label>
+                <select ng-model="modalInstance.form.counterparty" class="form-control" id="counterparty"
+                        ng-options="peer as peer for peer in modalInstance.peers">
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="value" class="control-label">Value (Int):</label>
+                <input type="text" ng-model="modalInstance.form.value" class="form-control" id="value">
+            </div>
+            <div ng-show="modalInstance.formError" class="form-group">
+                <div class="alert alert-danger" role="alert">
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                    <span class="sr-only">Error:</span>
+                    Enter valid IOU parameters
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button ng-click="modalInstance.cancel()" type="button" class="btn btn-default">Close</button>
+            <button ng-click="modalInstance.create()" type="button" class="btn btn-primary">Create IOU</button>
+        </div>
+    </form>
+</script>
+<script type="text/ng-template" id="messageContent.html">
+    <div class="modal-body" id="modal-body">
+        {{ modalInstanceTwo.message }}
+    </div>
+</script>
+
+<div class="row"  style="display:none;">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
+        <div ng-show="!demoApp.ious.length" class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">There are no recorded IOUs</h3>
+            </div>
+            <div class="panel-body">Use the "Create IOU" button to send an IOU to a peer.</div>
+        </div>
+        <div ng-show="demoApp.ious.length" class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Recorded IOUs:</h3>
+            </div>
+        </div>
+        <div ng-repeat="iou in demoApp.ious" class="panel panel-default">
+            <div class="panel-body">
+                <ul>
+                    <li>Lender: {{iou.lender}}</li>
+                    <li>Borrower: {{iou.borrower}}</li>
+                    <li>Value: {{iou.value}}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+</div>
+
+</body>
+</html>
